@@ -8,12 +8,19 @@ export interface XiangqiEngine {
 
 export class WorkerXiangqiEngine implements XiangqiEngine {
   private worker: Worker
+  private pending: boolean = false
 
   constructor() {
     this.worker = new Worker(new URL('./worker.ts', import.meta.url), { type: 'module' })
   }
 
   requestMove(position: string, color: Color, difficulty: Difficulty): Promise<Move> {
+    if (this.pending) {
+      return Promise.reject(
+        new Error('WorkerXiangqiEngine.requestMove called while a previous request is still pending'),
+      )
+    }
+    this.pending = true
     return new Promise((resolve, reject) => {
       const handleMessage = (event: MessageEvent<WorkerResponse>) => {
         cleanup()
@@ -24,6 +31,7 @@ export class WorkerXiangqiEngine implements XiangqiEngine {
         reject(error)
       }
       const cleanup = () => {
+        this.pending = false
         this.worker.removeEventListener('message', handleMessage)
         this.worker.removeEventListener('error', handleError)
       }
