@@ -104,6 +104,22 @@ export function Board() {
         )
       })}
 
+      {board.map((piece, index) => {
+        if (!piece) return null
+        const col = index % COLS
+        const row = Math.floor(index / COLS)
+        return (
+          <Piece
+            key={index}
+            piece={piece}
+            x={boardX(col, flipped)}
+            y={boardY(row, flipped)}
+            selected={selected?.col === col && selected?.row === row}
+            onClick={() => handleSquareClick({ col, row })}
+          />
+        )
+      })}
+
       {legalTargets.map((target) => (
         <circle
           key={`target-${target.col}-${target.row}`}
@@ -121,22 +137,6 @@ export function Board() {
           <circle cx={boardX(lastMove.to.col, flipped)} cy={boardY(lastMove.to.row, flipped)} r={4} className="fill-sky-500" />
         </>
       )}
-
-      {board.map((piece, index) => {
-        if (!piece) return null
-        const col = index % COLS
-        const row = Math.floor(index / COLS)
-        return (
-          <Piece
-            key={index}
-            piece={piece}
-            x={boardX(col, flipped)}
-            y={boardY(row, flipped)}
-            selected={selected?.col === col && selected?.row === row}
-            onClick={() => handleSquareClick({ col, row })}
-          />
-        )
-      })}
     </svg>
   )
 }
