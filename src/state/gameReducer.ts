@@ -137,6 +137,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
 
     case 'UNDO': {
       if (state.history.length === 0) return state
+      if (state.mode === 'vs-ai' && state.turn !== 'red') return state
       const pliesToUndo = state.mode === 'vs-ai' ? 2 : 1
       const keep = Math.max(0, state.history.length - pliesToUndo)
 
