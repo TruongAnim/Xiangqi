@@ -1,8 +1,7 @@
 import { useGame } from '../state/GameProvider'
 import { Piece } from './Piece'
 import { Square } from './Square'
-import { coordToIndex, type Coord } from '../engine/board'
-import { playSound } from '../sound/sound'
+import type { Coord } from '../engine/board'
 
 const CELL = 60
 const MARGIN = 40
@@ -26,12 +25,6 @@ export function Board() {
   const lastMove = history[history.length - 1]?.move
 
   function handleSquareClick(coord: Coord) {
-    const isMove =
-      selected !== null && legalTargets.some((t) => t.col === coord.col && t.row === coord.row)
-    if (isMove) {
-      const captured = board[coordToIndex(coord)]
-      playSound(captured ? 'capture' : 'move')
-    }
     dispatch({ type: 'SELECT_SQUARE', coord })
   }
 

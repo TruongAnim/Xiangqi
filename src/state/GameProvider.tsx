@@ -1,6 +1,7 @@
-import { createContext, useContext, useEffect, useReducer, type Dispatch, type ReactNode } from 'react'
+import { createContext, useContext, useEffect, useRef, useReducer, type Dispatch, type ReactNode } from 'react'
 import { gameReducer, initialGameState, type GameAction, type GameState } from './gameReducer'
 import { useAIMove } from '../hooks/useAIMove'
+import { playSound } from '../sound/sound'
 
 interface GameContextValue {
   state: GameState
@@ -16,6 +17,18 @@ export function GameProvider({ children }: { children: ReactNode }) {
   const [state, dispatch] = useReducer(gameReducer, initialGameState)
 
   useAIMove(state, dispatch, AI_COLOR)
+
+  const previousHistoryLengthRef = useRef(state.history.length)
+
+  useEffect(() => {
+    const previousLength = previousHistoryLengthRef.current
+    const currentLength = state.history.length
+    if (currentLength === previousLength + 1) {
+      const entry = state.history[currentLength - 1]
+      playSound(entry.captured ? 'capture' : 'move')
+    }
+    previousHistoryLengthRef.current = currentLength
+  }, [state.history])
 
   useEffect(() => {
     if (!state.clocks) return
