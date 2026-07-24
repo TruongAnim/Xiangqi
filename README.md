@@ -1,32 +1,45 @@
-# React + TypeScript + Vite
+# Xiangqi Web
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+A Xiangqi (Chinese Chess) web app built with React, Vite, TypeScript, and Tailwind CSS. Play against a local AI (Easy/Medium/Hard, running in a Web Worker) or pass-and-play with another person on the same device.
 
-Currently, two official plugins are available:
+## Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+- Full Xiangqi rule enforcement: cannon-mount captures, elephant river boundary, horse leg-blocking, flying general rule, checkmate and no-legal-move detection.
+- Play vs AI at three difficulty levels, or local pass & play.
+- Move history, undo, per-side countdown clocks with selectable time controls, check/checkmate/timeout alerts, and move sound effects.
 
-## React Compiler
+## Local development
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the Oxlint configuration
-
-If you are developing a production application, we recommend enabling type-aware lint rules by installing `oxlint-tsgolint` and editing `.oxlintrc.json`:
-
-```json
-{
-  "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["react", "typescript", "oxc"],
-  "options": {
-    "typeAware": true
-  },
-  "rules": {
-    "react/rules-of-hooks": "error",
-    "react/only-export-components": ["warn", { "allowConstantExport": true }]
-  }
-}
+```bash
+npm install
+npm run dev
 ```
 
-See the [Oxlint rules documentation](https://oxc.rs/docs/guide/usage/linter/rules) for the full list of rules and categories.
+Open the printed local URL in your browser.
+
+## Running tests
+
+```bash
+npm run test        # run once
+npm run test:watch  # watch mode
+```
+
+Tests cover the rules engine (`src/engine/`) and the AI search (`src/ai/`).
+
+## Building for production
+
+```bash
+npm run build
+npm run preview   # serve the production build locally
+```
+
+## Deploying to GitHub Pages
+
+This repo is set up to deploy automatically via GitHub Actions:
+
+1. Push this repo to GitHub as `xiangqi-web` (the Vite `base` path in `vite.config.ts` is set to `/xiangqi-web/` to match).
+2. In the repo's **Settings → Pages**, set **Source** to **GitHub Actions**.
+3. Push to `main` — the `.github/workflows/deploy.yml` workflow builds the app and deploys `dist/` to GitHub Pages automatically.
+4. The site will be available at `https://<your-username>.github.io/xiangqi-web/`.
+
+To deploy manually instead, trigger the workflow from the **Actions** tab using **Run workflow** (it's configured with `workflow_dispatch`).
