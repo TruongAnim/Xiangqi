@@ -62,12 +62,13 @@ npm run preview   # serve the production build locally
 
 This repo is set up to deploy automatically via GitHub Actions:
 
-1. Push this repo to GitHub as `xiangqi` (the Vite `base` path in `vite.config.ts` is set to
-   `/xiangqi/` to match — change it if you name the repo differently).
+1. The repo lives at `TruongAnim/Xiangqi`, so the Vite `base` path in `vite.config.ts` is
+   `/Xiangqi/`. Pages URLs are case-sensitive: if you rename the repo, change `base` to match
+   exactly, or every asset will 404.
 2. In the repo's **Settings → Pages**, set **Source** to **GitHub Actions**.
 3. Push to `main` — the `.github/workflows/deploy.yml` workflow builds the app and deploys `dist/` to
    GitHub Pages automatically.
-4. The site will be available at `https://<your-username>.github.io/xiangqi/`.
+4. The site is served at <https://truonganim.github.io/Xiangqi/>.
 
 To deploy manually instead, trigger the workflow from the **Actions** tab using **Run workflow**
 (it's configured with `workflow_dispatch`).
