@@ -1,5 +1,5 @@
 {
-  "name": "xiangqi-web",
+  "name": "xiangqi",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -26,5 +26,6 @@
     "typescript": "~6.0.2",
     "vite": "^8.1.1",
     "vitest": "^4.1.10"
-  }
+  },
+  "description": "C\u1edd t\u01b0\u1edbng ch\u01a1i v\u1edbi m\u00e1y tr\u00ean web / Xiangqi (Chinese chess) vs computer in the browser"
 }

@@ -1,10 +1,16 @@
-import { Board, Color, Coord, Move, applyMove, coordToIndex, indexToCoord } from './board'
+import { Board, Color, Coord, Move, coordToIndex, indexToCoord } from './board'
 import { allPseudoLegalMoves, pseudoLegalMoves } from './pieces'
+import { isSquareAttacked } from './attacks'
 
-function findGeneral(board: Board, color: Color): Coord {
+function locateGeneral(board: Board, color: Color): Coord | null {
   const index = board.findIndex((piece) => piece?.type === 'general' && piece.color === color)
-  if (index === -1) throw new Error(`No ${color} general on board`)
-  return indexToCoord(index)
+  return index === -1 ? null : indexToCoord(index)
+}
+
+export function findGeneral(board: Board, color: Color): Coord {
+  const coord = locateGeneral(board, color)
+  if (!coord) throw new Error(`No ${color} general on board`)
+  return coord
 }
 
 function opponent(color: Color): Color {
@@ -12,14 +18,19 @@ function opponent(color: Color): Color {
 }
 
 export function isInCheck(board: Board, color: Color): boolean {
-  const generalIndex = coordToIndex(findGeneral(board, color))
-  const opponentMoves = allPseudoLegalMoves(board, opponent(color))
-  return opponentMoves.some((move) => coordToIndex(move.to) === generalIndex)
+  return isSquareAttacked(board, findGeneral(board, color), opponent(color))
 }
 
+/**
+ * A general can go missing mid-legality-check when the move under test captures
+ * it. That only happens in positions that cannot arise from a legal game, but
+ * the search must not blow up on one, so a missing general simply means the
+ * generals are not facing.
+ */
 export function generalsFacing(board: Board): boolean {
-  const redGeneral = findGeneral(board, 'red')
-  const blackGeneral = findGeneral(board, 'black')
+  const redGeneral = locateGeneral(board, 'red')
+  const blackGeneral = locateGeneral(board, 'black')
+  if (!redGeneral || !blackGeneral) return false
   if (redGeneral.col !== blackGeneral.col) return false
   const [top, bottom] =
     redGeneral.row < blackGeneral.row ? [redGeneral, blackGeneral] : [blackGeneral, redGeneral]
@@ -29,11 +40,25 @@ export function generalsFacing(board: Board): boolean {
   return true
 }
 
+/**
+ * Legality is checked for every pseudo-legal move, so the move is played on the
+ * caller's board and taken back rather than copying all 90 squares each time.
+ * The board is always restored before returning.
+ */
 export function isLegalMove(board: Board, move: Move, color: Color): boolean {
-  const next = applyMove(board, move)
-  if (isInCheck(next, color)) return false
-  if (generalsFacing(next)) return false
-  return true
+  const fromIndex = coordToIndex(move.from)
+  const toIndex = coordToIndex(move.to)
+  const moving = board[fromIndex]
+  const captured = board[toIndex]
+
+  board[toIndex] = moving
+  board[fromIndex] = null
+  try {
+    return !isInCheck(board, color) && !generalsFacing(board)
+  } finally {
+    board[fromIndex] = moving
+    board[toIndex] = captured
+  }
 }
 
 export function legalMovesFrom(board: Board, from: Coord): Move[] {

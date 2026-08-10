@@ -1,12 +1,26 @@
-# Xiangqi Web
+# Xiangqi
 
-A Xiangqi (Chinese Chess) web app built with React, Vite, TypeScript, and Tailwind CSS. Play against a local AI (Easy/Medium/Hard, running in a Web Worker) or pass-and-play with another person on the same device.
+Cờ tướng chơi ngay trên trình duyệt, đấu với máy hoặc hai người một máy.
+A Xiangqi (Chinese chess) web app built with React, Vite, TypeScript and Tailwind CSS. Play against a
+local engine running in a Web Worker, or pass-and-play with someone on the same device.
 
 ## Features
 
-- Full Xiangqi rule enforcement: cannon-mount captures, elephant river boundary, horse leg-blocking, flying general rule, checkmate and no-legal-move detection.
-- Play vs AI at three difficulty levels, or local pass & play.
-- Move history, undo, per-side countdown clocks with selectable time controls, check/checkmate/timeout alerts, and move sound effects.
+- **Full rule enforcement** — cannon screens, elephants held behind the river, horses blocked by the
+  leg, the flying-general rule, checkmate, and the stalemate-is-a-loss rule.
+- **Draw and repetition rules** — threefold repetition and 60 moves without a capture end the game,
+  and a repetition forced by checks alone is scored as a loss for the side giving perpetual check.
+  (Perpetual chasing, which Asian rules also forbid, is not enforced.)
+- **Engine** — alpha-beta search with MVV-LVA move ordering, killer and history heuristics,
+  quiescence search over captures, in-check extensions, and iterative deepening under a hard time
+  budget. Three difficulties: Easy plays shallow and picks among plausible moves, Medium searches to
+  depth 4, Hard to depth 6.
+- **Bilingual** — Vietnamese and English throughout, including move notation: `Pháo 2 bình 5` or
+  `C2.5`. Switching language relabels the whole game record.
+- **Game record** — move list with capture markers, captured pieces with the material balance,
+  take-backs, board flip, per-side clocks, and sound that can be muted.
+- **Autosave** — the game in progress is kept in localStorage, so a refresh or a closed tab picks up
+  where it left off.
 
 ## Local development
 
@@ -24,7 +38,18 @@ npm run test        # run once
 npm run test:watch  # watch mode
 ```
 
-Tests cover the rules engine (`src/engine/`) and the AI search (`src/ai/`).
+Tests cover the rules engine (`src/engine/`), the AI search and evaluation (`src/ai/`), and the game
+state reducer and persistence (`src/state/`).
+
+## Project layout
+
+| Path | What lives there |
+| --- | --- |
+| `src/engine/` | Board representation, FEN, move generation, attack detection, legality, notation |
+| `src/ai/` | Evaluation, search, difficulty settings, and the Web Worker wrapper |
+| `src/state/` | Game reducer, React context, localStorage persistence |
+| `src/components/` | Board rendering and the surrounding UI |
+| `src/i18n/` | Vietnamese and English message dictionaries |
 
 ## Building for production
 
@@ -37,9 +62,12 @@ npm run preview   # serve the production build locally
 
 This repo is set up to deploy automatically via GitHub Actions:
 
-1. Push this repo to GitHub as `xiangqi-web` (the Vite `base` path in `vite.config.ts` is set to `/xiangqi-web/` to match).
+1. Push this repo to GitHub as `xiangqi` (the Vite `base` path in `vite.config.ts` is set to
+   `/xiangqi/` to match — change it if you name the repo differently).
 2. In the repo's **Settings → Pages**, set **Source** to **GitHub Actions**.
-3. Push to `main` — the `.github/workflows/deploy.yml` workflow builds the app and deploys `dist/` to GitHub Pages automatically.
-4. The site will be available at `https://<your-username>.github.io/xiangqi-web/`.
+3. Push to `main` — the `.github/workflows/deploy.yml` workflow builds the app and deploys `dist/` to
+   GitHub Pages automatically.
+4. The site will be available at `https://<your-username>.github.io/xiangqi/`.
 
-To deploy manually instead, trigger the workflow from the **Actions** tab using **Run workflow** (it's configured with `workflow_dispatch`).
+To deploy manually instead, trigger the workflow from the **Actions** tab using **Run workflow**
+(it's configured with `workflow_dispatch`).

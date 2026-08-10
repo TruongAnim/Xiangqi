@@ -63,7 +63,7 @@ function elephantMoves(board: Board, from: Coord, color: Color): Coord[] {
   return moves
 }
 
-const HORSE_MOVES = [
+export const HORSE_MOVES = [
   { d: { col: 1, row: 2 }, leg: { col: 0, row: 1 } },
   { d: { col: -1, row: 2 }, leg: { col: 0, row: 1 } },
   { d: { col: 1, row: -2 }, leg: { col: 0, row: -1 } },

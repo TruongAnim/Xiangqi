@@ -15,24 +15,32 @@ interface PieceProps {
   x: number
   y: number
   selected: boolean
+  /** True when this piece is a legal capture for the currently selected piece. */
+  capturable: boolean
   onClick: () => void
 }
 
-export function Piece({ piece, x, y, selected, onClick }: PieceProps) {
+export function Piece({ piece, x, y, selected, capturable, onClick }: PieceProps) {
   const label = LABELS[piece.type][piece.color]
-  const strokeClass = piece.color === 'red' ? 'stroke-red-700' : 'stroke-neutral-900'
-  const fillClass = piece.color === 'red' ? 'fill-red-700' : 'fill-neutral-900'
+  const ink = piece.color === 'red' ? '#b3261e' : '#1f2937'
+  const rim = selected ? '#059669' : capturable ? '#dc2626' : ink
 
   return (
     <g onClick={onClick} className="cursor-pointer">
-      <circle
-        cx={x}
-        cy={y}
-        r={22}
-        strokeWidth={2}
-        className={`fill-amber-50 ${selected ? 'stroke-emerald-500' : strokeClass}`}
-      />
-      <text x={x} y={y + 7} textAnchor="middle" className={`text-xl font-bold select-none ${fillClass}`}>
+      <circle cx={x + 1} cy={y + 2} r={24} fill="rgba(80, 50, 20, 0.25)" />
+      <circle cx={x} cy={y} r={24} fill="#fdf6e3" stroke={rim} strokeWidth={selected || capturable ? 3 : 1.5} />
+      <circle cx={x} cy={y} r={19.5} fill="none" stroke={rim} strokeWidth={selected || capturable ? 1.6 : 1} />
+      <text
+        x={x}
+        y={y}
+        textAnchor="middle"
+        dominantBaseline="central"
+        fill={ink}
+        fontSize={25}
+        fontWeight={700}
+        fontFamily="'PingFang SC', 'Noto Sans CJK SC', 'Songti SC', 'SimSun', serif"
+        className="select-none"
+      >
         {label}
       </text>
     </g>

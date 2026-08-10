@@ -1,17 +1,12 @@
 import { useEffect, useRef } from 'react'
-import { useGame } from '../state/GameProvider'
+import { useGame } from '../state/gameContext'
+import { useLanguage } from '../i18n/languageContext'
+import { isGameOver } from '../state/gameReducer'
 import { playSound } from '../sound/sound'
-import type { GameStatus } from '../state/gameReducer'
-
-const MESSAGES: Partial<Record<GameStatus, string>> = {
-  check: 'Check!',
-  checkmate: 'Checkmate!',
-  'no-moves-loss': 'No legal moves — game over!',
-  timeout: 'Time out!',
-}
 
 export function StatusBanner() {
   const { state } = useGame()
+  const { t } = useLanguage()
   const previousStatus = useRef(state.status)
 
   useEffect(() => {
@@ -19,18 +14,37 @@ export function StatusBanner() {
     previousStatus.current = state.status
 
     if (state.status === 'check') playSound('check')
-    if (state.status === 'checkmate' || state.status === 'no-moves-loss' || state.status === 'timeout') {
-      playSound('gameEnd')
-    }
+    else if (isGameOver(state.status)) playSound('gameEnd')
   }, [state.status])
 
-  const message = MESSAGES[state.status]
+  const message = (() => {
+    switch (state.status) {
+      case 'check':
+        return t.check
+      case 'checkmate':
+        return t.checkmate
+      case 'no-moves-loss':
+        return t.noMoves
+      case 'timeout':
+        return t.timeout
+      case 'perpetual-check-loss':
+        return t.perpetualCheck
+      case 'draw':
+        return state.drawReason === 'no-capture' ? t.drawNoCapture : t.drawRepetition
+      default:
+        return null
+    }
+  })()
+
   if (!message) return null
 
-  const winnerText = state.winner ? ` ${state.winner === 'red' ? 'Red' : 'Black'} wins.` : ''
+  const winnerText = state.winner ? ` ${t.winner(state.winner === 'red' ? t.red : t.black)}` : ''
+  const tone = isGameOver(state.status)
+    ? 'bg-neutral-900 text-white'
+    : 'bg-amber-200 text-amber-900'
 
   return (
-    <div className="px-4 py-2 rounded-md bg-amber-200 text-amber-900 font-semibold text-center">
+    <div className={`rounded-lg px-4 py-2 text-center font-semibold ${tone}`} role="status">
       {message}
       {winnerText}
     </div>

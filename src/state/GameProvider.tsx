@@ -1,22 +1,17 @@
-import { createContext, useContext, useEffect, useRef, useReducer, type Dispatch, type ReactNode } from 'react'
-import { gameReducer, initialGameState, type GameAction, type GameState } from './gameReducer'
+import { useEffect, useMemo, useReducer, useRef, type ReactNode } from 'react'
+import { AI_COLOR, gameReducer, initialGameState, isOngoing } from './gameReducer'
+import { GameContext } from './gameContext'
 import { useAIMove } from '../hooks/useAIMove'
+import { useGamePersistence } from '../hooks/useGamePersistence'
 import { playSound } from '../sound/sound'
 
-interface GameContextValue {
-  state: GameState
-  dispatch: Dispatch<GameAction>
-}
-
-const GameContext = createContext<GameContextValue | null>(null)
-
-const AI_COLOR = 'black' as const
 const CLOCK_TICK_MS = 250
 
 export function GameProvider({ children }: { children: ReactNode }) {
   const [state, dispatch] = useReducer(gameReducer, initialGameState)
 
   useAIMove(state, dispatch, AI_COLOR)
+  useGamePersistence(state, dispatch)
 
   const previousHistoryLengthRef = useRef(state.history.length)
 
@@ -32,7 +27,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (!state.clocks) return
-    if (state.status !== 'playing' && state.status !== 'check') return
+    if (!isOngoing(state.status)) return
 
     const interval = setInterval(() => {
       dispatch({ type: 'TICK', deltaMs: CLOCK_TICK_MS })
@@ -41,11 +36,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
     return () => clearInterval(interval)
   }, [state.clocks, state.status, state.turn])
 
-  return <GameContext.Provider value={{ state, dispatch }}>{children}</GameContext.Provider>
-}
+  const value = useMemo(() => ({ state, dispatch }), [state])
 
-export function useGame(): GameContextValue {
-  const context = useContext(GameContext)
-  if (!context) throw new Error('useGame must be used within a GameProvider')
-  return context
+  return <GameContext.Provider value={value}>{children}</GameContext.Provider>
 }
