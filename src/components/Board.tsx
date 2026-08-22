@@ -1,8 +1,9 @@
+import { useState, type CSSProperties } from 'react'
 import { useGame } from '../state/gameContext'
 import { findGeneral } from '../engine/rules'
 import { Piece } from './Piece'
 import { Square } from './Square'
-import type { Coord } from '../engine/board'
+import { coordToIndex, type Coord } from '../engine/board'
 
 const CELL = 60
 const MARGIN = 44
@@ -79,6 +80,32 @@ export function Board() {
   const width = MARGIN * 2 + (COLS - 1) * CELL
   const height = MARGIN * 2 + (ROWS - 1) * CELL
   const lastMove = history[history.length - 1]?.move
+
+  /*
+   * Only a move played forward slides. Taking a move back or restoring a saved
+   * game jumps straight to the position, because replaying the last move
+   * backwards would show the opposite of what just happened. The ply count is
+   * compared during render rather than in an effect so the piece is never
+   * painted at its destination first.
+   */
+  const [slide, setSlide] = useState({ atPly: history.length, animatedPly: -1 })
+  if (slide.atPly !== history.length) {
+    setSlide({
+      atPly: history.length,
+      animatedPly: history.length === slide.atPly + 1 ? history.length : -1,
+    })
+  }
+
+  const slidingEntry = slide.animatedPly === history.length ? history[history.length - 1] : null
+  const slidingIndex = slidingEntry ? coordToIndex(slidingEntry.move.to) : -1
+  const slidingPiece = slidingIndex >= 0 ? board[slidingIndex] : null
+
+  const slideOffset: CSSProperties | undefined = slidingEntry
+    ? ({
+        '--slide-dx': `${boardX(slidingEntry.move.from.col, flipped) - boardX(slidingEntry.move.to.col, flipped)}px`,
+        '--slide-dy': `${boardY(slidingEntry.move.from.row, flipped) - boardY(slidingEntry.move.to.row, flipped)}px`,
+      } as CSSProperties)
+    : undefined
 
   const checkedGeneral =
     status === 'check' || status === 'checkmate' ? findGeneral(board, turn) : null
@@ -232,6 +259,8 @@ export function Board() {
 
       {board.map((piece, index) => {
         if (!piece) return null
+        // The sliding piece is drawn after this loop so it passes over the rest.
+        if (index === slidingIndex) return null
         const col = index % COLS
         const row = Math.floor(index / COLS)
         const isTarget = legalTargets.some((target) => target.col === col && target.row === row)
@@ -247,6 +276,33 @@ export function Board() {
           />
         )
       })}
+
+      {slidingEntry?.captured && (
+        <g className="xq-capture-ghost">
+          <Piece
+            piece={slidingEntry.captured}
+            x={boardX(slidingEntry.move.to.col, flipped)}
+            y={boardY(slidingEntry.move.to.row, flipped)}
+            selected={false}
+            capturable={false}
+            onClick={() => {}}
+          />
+        </g>
+      )}
+
+      {slidingEntry && slidingPiece && (
+        // Keyed by ply so each move restarts the animation from the beginning.
+        <g key={`slide-${slide.animatedPly}`} className="xq-slide" style={slideOffset}>
+          <Piece
+            piece={slidingPiece}
+            x={boardX(slidingEntry.move.to.col, flipped)}
+            y={boardY(slidingEntry.move.to.row, flipped)}
+            selected={false}
+            capturable={false}
+            onClick={() => handleSquareClick(slidingEntry.move.to)}
+          />
+        </g>
+      )}
 
       {legalTargets.map((target) => {
         if (board[target.row * COLS + target.col]) return null
