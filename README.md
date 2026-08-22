@@ -60,15 +60,18 @@ npm run preview   # serve the production build locally
 
 ## Deploying to GitHub Pages
 
-This repo is set up to deploy automatically via GitHub Actions:
+The site is served from the custom domain <https://xiangqi.earth.io.vn>, deployed automatically
+by GitHub Actions.
 
-1. The repo lives at `TruongAnim/Xiangqi`, so the Vite `base` path in `vite.config.ts` is
-   `/Xiangqi/`. Pages URLs are case-sensitive: if you rename the repo, change `base` to match
-   exactly, or every asset will 404.
-2. In the repo's **Settings → Pages**, set **Source** to **GitHub Actions**.
-3. Push to `main` — the `.github/workflows/deploy.yml` workflow builds the app and deploys `dist/` to
-   GitHub Pages automatically.
-4. The site is served at <https://truonganim.github.io/Xiangqi/>.
+1. **DNS**: `xiangqi.earth.io.vn` is a `CNAME` record pointing at `truonganim.github.io`.
+2. **Custom domain**: set in the repo's **Settings → Pages**, and mirrored by `public/CNAME` so the
+   published build carries it too.
+3. **Source**: **Settings → Pages → Source** is set to **GitHub Actions**.
+4. **Base path**: because the site sits at the root of its own domain, `base` in `vite.config.ts` is
+   `/`. Serving from `truonganim.github.io/Xiangqi/` instead would need `base: '/Xiangqi/'` — spelled
+   with the same capitalisation as the repo, since Pages paths are case-sensitive.
+5. Pushing to `main` runs `.github/workflows/deploy.yml`, which builds the app and deploys `dist/`.
+   Development happens on `develop`; merge it into `main` to publish.
 
 To deploy manually instead, trigger the workflow from the **Actions** tab using **Run workflow**
 (it's configured with `workflow_dispatch`).
